@@ -1,0 +1,10 @@
+fastapi>=0.115,<0.117
+uvicorn[standard]>=0.34,<0.36
+sqlmodel>=0.0.22,<0.1
+psycopg[binary]>=3.2,<4
+pydantic-settings>=2.7,<3
+bcrypt>=4.2,<5
+itsdangerous>=2.2,<3
+jinja2>=3.1,<4
+python-multipart>=0.0.20
+ollama>=0.4,<0.5

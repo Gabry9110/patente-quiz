@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Statistiche · Patente Quiz{% endblock %}
+{% block content %}
+<h1>Statistiche</h1>
+
+<div class="card accent">
+  <h3>Panoramica</h3>
+  <div class="stat-row"><span>Sessioni completate</span><strong>{{ overall.sessions }}</strong></div>
+  <div class="stat-row"><span>Domande totali risposte</span><strong>{{ overall.answered }}</strong></div>
+  <div class="stat-row"><span>Risposte corrette</span><strong>{{ overall.correct }}</strong></div>
+  <div class="stat-row">
+    <span>Percentuale media</span>
+    <div class="bar {% if overall.pct >= 80 %}good{% elif overall.pct >= 60 %}mid{% else %}bad{% endif %}" style="max-width:200px">
+      <span style="width:{{ overall.pct }}%"></span>
+    </div>
+    <strong>{{ overall.pct }}%</strong>
+  </div>
+</div>
+
+<h2 class="mt-3">Per categoria</h2>
+<div class="card">
+  {% if not per_category %}
+  <p class="muted mb-0">Nessuna statistica ancora. Fai qualche quiz!</p>
+  {% endif %}
+  {% for row in per_category %}
+  <div class="stat-row">
+    <span style="flex:0 0 40%">{{ row.title }}</span>
+    <div class="bar {% if row.pct >= 80 %}good{% elif row.pct >= 60 %}mid{% else %}bad{% endif %}">
+      <span style="width:{{ row.pct }}%"></span>
+    </div>
+    <strong style="min-width:90px;text-align:right">{{ row.correct }}/{{ row.answered }} ({{ row.pct }}%)</strong>
+  </div>
+  {% endfor %}
+</div>
+
+{% if recent_sessions %}
+<h2 class="mt-3">Sessioni recenti</h2>
+<div class="card">
+  {% for s in recent_sessions %}
+  <div class="stat-row">
+    <span>{{ s.started_at.strftime('%d/%m %H:%M') }} · {{ s.mode_label }}</span>
+    <strong>{{ s.score }}/{{ s.total }}</strong>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

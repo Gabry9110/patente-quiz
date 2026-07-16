@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1e1e2e">
+  <title>{% block title %}Patente Quiz{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/catppuccin-mocha.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</head>
+<body>
+  {% if topbar %}
+  <header class="topbar">
+    <a href="/" class="brand"><span class="dot"></span> Patente Quiz</a>
+    <nav>
+      <a href="/">Dashboard</a>
+      <a href="/stats">Statistiche</a>
+      <a href="/review">Ripasso</a>
+      {% if user %}
+      <form method="post" action="/logout">
+        <button class="btn ghost sm" type="submit">Esci</button>
+      </form>
+      {% endif %}
+    </nav>
+  </header>
+  {% endif %}
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

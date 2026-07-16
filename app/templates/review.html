@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Ripasso · Patente Quiz{% endblock %}
+{% block content %}
+<div class="row between">
+  <h1 class="mb-0">Ripasso domande sbagliate</h1>
+  {% if questions %}
+  <a class="btn primary sm" href="/quiz/start?mode=wrong">Quiz solo sbagliate</a>
+  {% endif %}
+</div>
+<p class="muted">Qui trovi le domande a cui hai risposto in modo errato nelle sessioni passate.</p>
+
+{% if not questions %}
+<div class="card center muted">Nessuna domanda sbagliata 🎉 — ottimo lavoro!</div>
+{% endif %}
+
+<div class="grid">
+{% for q in questions %}
+<div class="card">
+  <span class="chip">{{ q.category.title }}</span>
+  <div class="question-text mt-1">{{ q.text }}</div>
+  <div class="options">
+    {% for o in q.options %}
+    <div class="option {% if o.is_correct %}correct{% endif %}">
+      <span class="letter">{{ ['a','b','c','d','e'][loop.index0] }}</span>
+      <span>{{ o.text }}</span>
+      {% if o.is_correct %}<span class="chip accent" style="margin-left:auto">corretta</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if q.explanation %}<p class="muted mt-1 mb-0">{{ q.explanation }}</p>{% endif %}
+</div>
+{% endfor %}
+</div>
+{% endblock %}

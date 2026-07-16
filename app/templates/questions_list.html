@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Domande · {{ category.title }}{% endblock %}
+{% block content %}
+<div class="row between">
+  <h1 class="mb-0">{{ category.title }}</h1>
+  <div class="row">
+    <button class="btn primary sm"
+      hx-post="/questions/generate?category={{ category.slug }}&n=1"
+      hx-target="#gen-list-status"
+      hx-swap="innerHTML"
+      hx-disabled-elt="this">
+      + Genera domanda
+    </button>
+    <a class="btn sm" href="/quiz/start?mode=category&slug={{ category.slug }}">Quiz su questa categoria</a>
+  </div>
+</div>
+<p class="muted">{{ category.description }}</p>
+<div id="gen-list-status" class="muted" style="min-height:1.2rem"></div>
+
+<div class="grid">
+{% for q in questions %}
+<div class="card">
+  <div class="row between">
+    <span class="chip">{{ loop.index }}</span>
+    {% if q.verified %}<span class="chip accent">verificata</span>{% elif q.source == 'ondemand' %}<span class="chip">da verificare</span>{% endif %}
+  </div>
+  <div class="question-text mt-1">{{ q.text }}</div>
+  <div class="options">
+    {% for o in q.options %}
+    <div class="option {% if o.is_correct %}correct{% endif %}">
+      <span class="letter">{{ ['a','b','c','d','e'][loop.index0] }}</span>
+      <span>{{ o.text }}</span>
+      {% if o.is_correct %}<span class="chip accent" style="margin-left:auto">corretta</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if q.explanation %}<p class="muted mt-1 mb-0">{{ q.explanation }}</p>{% endif %}
+</div>
+{% endfor %}
+{% if not questions %}
+<div class="card center muted">Nessuna domanda in questa categoria. Usa "Genera domanda" per crearne.</div>
+{% endif %}
+</div>
+{% endblock %}

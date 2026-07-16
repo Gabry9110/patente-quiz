@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: patente-quiz:latest
+    container_name: patente-quiz
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    ports:
+      # Bind only to the LXC IP so Cloudflare Tunnel (outside the LXC) can reach it.
+      # Adjust the host part to the actual LXC address if needed.
+      - "127.0.0.1:8000:8000"
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

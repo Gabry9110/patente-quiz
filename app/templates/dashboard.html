@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Patente Quiz{% endblock %}
+{% block content %}
+<div class="row between">
+  <h1>Ciao {{ user.username }} 👋</h1>
+  <span class="chip accent">{{ total_questions }} domande</span>
+</div>
+<p class="muted">Scegli una categoria per iniziare un quiz, oppure lancia una sessione mista o di ripasso.</p>
+
+<div class="card accent mt-2">
+  <h3>Avvio rapido</h3>
+  <div class="row">
+    <a class="btn primary" href="/quiz/start?mode=mixed">Quiz misto (tutte le categorie)</a>
+    <a class="btn" href="/review">Ripasso domande sbagliate{% if wrong_count > 0 %} ({{ wrong_count }}){% endif %}</a>
+    <a class="btn ghost" href="/stats">Statistiche</a>
+  </div>
+</div>
+
+<h2 class="mt-3">Categorie</h2>
+<div class="grid cols-2">
+  {% for c in categories %}
+  <div class="card">
+    <div class="row between">
+      <h3 class="mb-0">{{ c.title }}</h3>
+      <span class="chip">{{ counts[c.slug] }} dom.</span>
+    </div>
+    <p class="muted mt-1 mb-0">{{ c.description }}</p>
+    <div class="row mt-2">
+      <a class="btn primary sm" href="/quiz/start?mode=category&slug={{ c.slug }}">Inizia quiz</a>
+      <a class="btn ghost sm" href="/questions?category={{ c.slug }}">Vedi domande</a>
+      <button class="btn ghost sm"
+        hx-post="/questions/generate?category={{ c.slug }}&n=1"
+        hx-target="#gen-status-{{ c.slug }}"
+        hx-swap="innerHTML"
+        hx-disabled-elt="this">
+        + Genera domanda
+      </button>
+    </div>
+    <div id="gen-status-{{ c.slug }}" class="mt-1 muted" style="min-height:1rem"></div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

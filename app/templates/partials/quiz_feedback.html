@@ -1,0 +1,34 @@
+{# Partial returned after an answer is submitted. #}
+<div class="card accent" id="quiz-card">
+  <div class="question-text">{{ question.text }}</div>
+  <div class="options">
+    {% for o in question.options %}
+    <div class="option {% if o.id in correct_ids %}correct{% endif %}{% if o.id in selected_ids and o.id not in correct_ids %}wrong{% endif %}">
+      <span class="letter">{{ ['a','b','c','d','e'][loop.index0] }}</span>
+      <span>{{ o.text }}</span>
+      {% if o.id in correct_ids %}<span class="chip accent" style="margin-left:auto">corretta</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="feedback {{ 'ok' if is_correct else 'bad' }}">
+    <div class="verdict {{ 'ok' if is_correct else 'bad' }}">
+      {% if is_correct %}✓ Risposta correta{% else %}✗ Risposta errata{% endif %}
+      {% if question.verified %}<span class="badge verified">verificata</span>{% elif question.source == 'ondemand' %}<span class="badge unverified">da verificare</span>{% endif %}
+    </div>
+    {% if question.explanation %}<div class="explanation">{{ question.explanation }}</div>{% endif %}
+    {% if not is_correct and question.verification_note and not question.verified %}
+    <div class="explanation" style="color:var(--warning)">Nota di verifica: {{ question.verification_note }}</div>
+    {% endif %}
+  </div>
+
+  <div class="row mt-3">
+    {% if next_index < total %}
+    <a class="btn primary" href="/quiz/next?session_id={{ session_id }}&index={{ next_index }}">Prossima domanda →</a>
+    {% else %}
+    <a class="btn primary" href="/quiz/end?session_id={{ session_id }}">Vedi risultato →</a>
+    {% endif %}
+    <span class="spacer"></span>
+    <a class="btn ghost" href="/">Abbandona</a>
+  </div>
+</div>
