@@ -1,0 +1,16 @@
+[Unit]
+Description=Patente Quiz FastAPI app
+After=network.target
+
+[Service]
+Type=simple
+User=patente-quiz
+Group=patente-quiz
+WorkingDirectory=/opt/patente-quiz
+EnvironmentFile=-/opt/patente-quiz/.env
+ExecStart=/opt/patente-quiz/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

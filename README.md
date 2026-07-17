@@ -9,7 +9,7 @@ Le domande sono generate da un LLM (Ollama Cloud, modello `deepseek-v4-flash`) e
 - DB: PostgreSQL (homelab)
 - LLM: Ollama Cloud API (`ollama` Python client)
 - Tema: Catppuccin Mocha, accent Mauve
-- Deploy: LXC Proxmox + Docker Compose, Cloudflare Tunnel
+- Deploy: LXC Proxmox Debian 13 + Python venv + systemd, Cloudflare Tunnel
 
 ## Funzionalità
 - 10 categorie pre-seedate da `data/lista-argomenti.md`
@@ -27,14 +27,16 @@ Le domande sono generate da un LLM (Ollama Cloud, modello `deepseek-v4-flash`) e
 ## Setup rapido
 
 ### 1. Database Postgres
-Sulla VM `192.168.2.105` (come `postgres` o superuser):
+Puoi eseguire lo script dal tuo PC (WSL o desktop Arch Linux) se può raggiungere la VM Postgres sulla LAN:
 
 ```bash
-PGHOST=127.0.0.1 PGUSER=postgres bash scripts/create_db.sh
+PGHOST=192.168.2.105 PGUSER=postgres PGPASSWORD=... bash scripts/create_db.sh
 ```
 
 Lo script crea il ruolo `patente_quiz_app` (least-privilege), il DB `patente_quiz`, revoca `PUBLIC`, imposta grant su schema/sequence/tabelle (anche future), stampa la connection string con password generata.
 
+> **Requisiti**: lo script usa `psql` locale o, in alternativa, Docker. Su Arch Linux / WSL installa `psql` con `sudo pacman -S postgresql`.
+>
 > **Avviso**: il Postgres non ha TLS configurato, le credenziali viaggiano in chiaro sulla LAN. Per uso homelab è accettabile; in produzione abilitare `ssl=prefer`.
 
 ### 2. LXC Proxmox
@@ -44,7 +46,7 @@ Dal **host Proxmox**:
 bash scripts/provision_lxc.sh
 ```
 
-Crea l'LXC ID 210 (`patente-quiz`, Debian 12, 2GB RAM, 8GB disk, `vmbr0`, nesting abilitato, DHCP), installa Docker, copia il progetto in `/opt/patente-quiz`.
+Crea l'LXC ID 210 (`patente-quiz`, Debian 13, 2GB RAM, 8GB disk, `vmbr0`, nesting abilitato, DHCP), crea un virtualenv Python e un systemd service, copia il progetto in `/opt/patente-quiz`. Non usa Docker.
 
 ### 3. Configura `.env` dentro l'LXC
 ```bash
@@ -59,16 +61,17 @@ Compila:
 
 ### 4. Avvia l'app
 ```bash
-pct exec 210 -- docker compose -f /opt/patente-quiz/docker-compose.yml up -d --build
+pct exec 210 -- systemctl start patente-quiz
+pct exec 210 -- systemctl status patente-quiz
 ```
 
 ### 5. Pre-popolare il banco domande
 ```bash
-pct exec 210 -- docker exec patente-quiz python -m app.seed
+pct exec 210 -- /opt/patente-quiz/.venv/bin/python -m app.seed
 ```
 Genera 100 domande (10 per categoria) con self-check. Usa `--no-selfcheck` per saltare la verifica e velocizzare:
 ```bash
-pct exec 210 -- docker exec patente-quiz python -m app.seed --no-selfcheck
+pct exec 210 -- /opt/patente-quiz/.venv/bin/python -m app.seed --no-selfcheck
 ```
 
 ### 6. Cloudflare Tunnel
@@ -107,7 +110,7 @@ app/
 static/css/          Catppuccin Mocha
 data/                lista-argomenti.md, riassunto-video.md (read-only)
 scripts/             create_db.sh, provision_lxc.sh
-deploy/              Dockerfile, docker-compose.yml
+deploy/              patente-quiz.service, Dockerfile, docker-compose.yml
 ```
 
 ## Categorie (10)

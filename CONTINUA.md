@@ -13,7 +13,7 @@ Tutta l'applicazione MVP è implementata e **verificata con smoke test HTTP** il
 - ✅ **Route**: auth (login/logout/setup), dashboard, quiz (start/answer/next/end), questions (list + generate on-demand), review (sbagliate), stats (per categoria + storico)
 - ✅ **Template**: base, login, dashboard, quiz_play, quiz_feedback (partial), quiz_end, questions_list, review, stats, error
 - ✅ **CSS**: Catppuccin Mocha, accent Mauve, responsive mobile-first
-- ✅ **Deploy**: `scripts/create_db.sh` (Postgres least-privilege), `deploy/Dockerfile`, `deploy/docker-compose.yml`, `scripts/provision_lxc.sh` (LXC Proxmox ID 210, vmbr0)
+- ✅ **Deploy**: `scripts/create_db.sh` (Postgres least-privilege), `deploy/patente-quiz.service`, `scripts/provision_lxc.sh` (LXC Proxmox ID 210, Debian 13, vmbr0, no Docker)
 
 ### Smoke test superati (20/07/2026, con SQLite locale)
 Tutti i test in `scripts/smoke_test.py` passano:
@@ -57,11 +57,11 @@ python scripts\smoke_test.py
 Deve stampare `ALL HTTP SMOKE TESTS PASSED`.
 
 ### 4. Deploy reale (quando sei pronto)
-1. **Crea il DB Postgres** (sulla VM 192.168.2.105):
+1. **Crea il DB Postgres** (puoi eseguire lo script dal tuo PC se raggiunge la VM):
    ```bash
-   PGHOST=127.0.0.1 PGUSER=postgres bash scripts/create_db.sh
+   PGHOST=192.168.2.105 PGUSER=postgres PGPASSWORD=... bash scripts/create_db.sh
    ```
-   Salva la connection string stampata.
+   Salva la connection string stampata. Su Arch/WSL installa `psql` con `sudo pacman -S postgresql`.
 
 2. **Crea l'LXC Proxmox** (dall'host Proxmox):
    ```bash
@@ -76,12 +76,13 @@ Deve stampare `ALL HTTP SMOKE TESTS PASSED`.
 
 4. **Avvia l'app**:
    ```bash
-   pct exec 210 -- docker compose -f /opt/patente-quiz/docker-compose.yml up -d --build
+   pct exec 210 -- systemctl start patente-quiz
+   pct exec 210 -- systemctl status patente-quiz
    ```
 
 5. **Pre-popolale le domande**:
    ```bash
-   pct exec 210 -- docker exec patente-quiz python -m app.seed
+   pct exec 210 -- /opt/patente-quiz/.venv/bin/python -m app.seed
    ```
 
 6. **Cloudflare Tunnel** → punta a `http://<LXC_IP>:8000`
@@ -118,7 +119,7 @@ Questi non sono coperti dallo smoke test e potrebbero avere bug residui:
 
 7. **Template quiz_end.html**: usa espressione inline `{{ 'var(--success)' if score == total else 'var(--accent)' }}` — verificare che Jinja2 la renda correttamente nel tag `style`.
 
-8. **Docker build**: il `Dockerfile` copia `app/`, `static/`, `data/` — verificare che il build passi e che i percorsi `data/riassunto-video.md` siano accessibili dal container (path relativo a `settings.project_root`).
+8. **Deploy LXC senza Docker**: verificare che `provision_lxc.sh` su Proxmox crei correttamente il CT Debian 13, installi il venv, copi il service systemd e che `systemctl start patente-quiz` porti l'app in ascolto su `http://<LXC_IP>:8000`.
 
 ## Struttura del repo
 ```
@@ -130,7 +131,7 @@ patente-quiz/
 ├─ data/ (lista-argomenti.md, riassunto-video.md)
 ├─ static/css/catppuccin-mocha.css
 ├─ scripts/ (create_db.sh, provision_lxc.sh, smoke_test.py)
-├─ deploy/ (Dockerfile, docker-compose.yml)
+├─ deploy/ (patente-quiz.service, Dockerfile, docker-compose.yml)
 ├─ requirements.txt, .env.example, .gitignore
 ├─ README.md, AGENTS.md, CONTINUA.md (questo file)
 ```
